@@ -10,7 +10,9 @@
 #include <pc_source/mesh_source.h>
 #include <feature_wrapper/global/vfh_estimator.h>
 #include <feature_wrapper/global/esf_estimator.h>
-#include <feature_wrapper/global/cvfh_estimator.h>
+
+//#include <feature_wrapper/global/cvfh_estimator.h>
+
 #include <tools/openni_frame_source.h>
 #include <utils/metrics.h>
 #include <pcl/visualization/pcl_visualizer.h>

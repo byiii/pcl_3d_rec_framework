@@ -99,7 +99,7 @@ namespace pcl
           model.poses_.reset (new std::vector<Eigen::Matrix4f, Eigen::aligned_allocator<Eigen::Matrix4f> >);
           model.self_occlusions_.reset (new std::vector<float>);
           model.assembled_.reset (new pcl::PointCloud<pcl::PointXYZ>);
-          uniform_sampling (model_path, 100000, *model.assembled_, model_scale_);
+          uniform_sampling (model_path, 70000, *model.assembled_, model_scale_);
 
           if (bf::exists (trained_dir))
           {
