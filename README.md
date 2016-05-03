@@ -1,5 +1,7 @@
 # pcl_3d_rec_framework
 
+codes from the **Point Cloud Library** module **apps**'s **3d_rec_framework**
+
 Mian dataset: 
 https://sourceforge.net/projects/pointclouds/files/PCD%20datasets/mian/
 
