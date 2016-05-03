@@ -1,0 +1,9 @@
+# build dir
+build/**/*
+
+# backup files
+*~
+*.swp
+
+# qt creator project files
+*.user
