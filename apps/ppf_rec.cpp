@@ -4,6 +4,7 @@
 
 #include <pcl/io/io.h>
 #include <pcl/io/pcd_io.h>
+#include <pcl/io/ply_io.h>
 #include <utils/vtk_model_sampling.h>
 #include <boost/function.hpp>
 #include <vtkTransformPolyDataFilter.h>
@@ -78,7 +79,7 @@ main (int argc, char** argv)
     bool useVertices_ = false;
     float radius_sphere_ = 1.5f;
     bool computeEntropies_ = true;
-    int tes_level_ = 0;
+    int tes_level_ = 1;
     float view_angle_ = 57.0f;
     bool gen_organized_ = true;
     float model_scale_ = 0.001f;
@@ -158,7 +159,7 @@ main (int argc, char** argv)
     concatenateFields (*cloud_scene_processed, *cloud_scene_normal, *cloud_scene_input);
 
     vector<PointCloud<PointNormal>::Ptr > cloud_models_with_normals;
-    normal_estimator->setValuesForCMRFalse (0.005f, 0.045f);
+    normal_estimator->setValuesForCMRFalse (0.015f, 0.045f);
 
     PCL_INFO ("Training models ...\n");
     vector<PPFHashMapSearch::Ptr> hashmap_search_vector;
@@ -187,8 +188,6 @@ main (int argc, char** argv)
         hashmap_search_vector.push_back (hashmap_search);
         std::cout << "model processed size: " << tmp_model_processed->points.size() << std::endl;
         std::cout << "model id " << model_i << " processed. "<< std::endl;
-        tmp_model->points.clear();
-        tmp_model->clear();
         tmp_model_processed->points.clear();
         tmp_model_processed->clear();
         tmp_model_normal->points.clear();
@@ -200,6 +199,8 @@ main (int argc, char** argv)
     viewer.addPointCloud (cloud_scene);
     viewer.spinOnce (10);
     PCL_INFO ("Registering models to scene ...\n");
+
+    pcl::PLYWriter writer;
     for (size_t model_i = 0; model_i < cloud_models.size (); ++model_i)
     {
 
@@ -220,14 +221,15 @@ main (int argc, char** argv)
 
         //  io::savePCDFileASCII ("output_subsampled_registered.pcd", cloud_output_subsampled);
 
+        PointCloud<PointXYZ>::Ptr tmp_model = cloud_models[model_i];
         PointCloud<PointXYZ>::Ptr cloud_output (new PointCloud<PointXYZ> ());
-        pcl::transformPointCloud (*cloud_models[model_i], *cloud_output, final_transformation);
+        pcl::transformPointCloud (*tmp_model, *cloud_output, final_transformation);
 
-        stringstream ss; ss << "model_" << model_i;
+        stringstream ss; ss << "model_" << model_i << ".ply";
         visualization::PointCloudColorHandlerRandom<PointXYZ> random_color (cloud_output->makeShared ());
-        //viewer.addPointCloud (cloud_output->makeShared(), random_color, ss.str ());
+        viewer.addPointCloud (cloud_output->makeShared(), random_color, ss.str ());
 
-        io::savePCDFileASCII (ss.str ().c_str (), *cloud_output);
+        //writer.write(ss.str().c_str(), *cloud_output);
 
         PCL_INFO ("Showing model %s\n", ss.str ().c_str ());
         cloud_output->points.clear();
