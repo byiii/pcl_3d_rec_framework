@@ -7,6 +7,12 @@ project(3d_rec_framework)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/" ${CMAKE_MODULE_PATH})
 include (FindPkgConfig)
 
+#libconfig
+set(Libconfig_INCLUDE_DIRS /home/jyi/Devel/0000Small/libconfig/include)
+set(Libconfig_LIB_DIR /home/jyi/Devel/0000Small/libconfig/lib)
+set(Libconfig_LIBS libconfig.a libconfig++.a)
+LINK_DIRECTORIES(${Libconfig_LIB_DIR})
+
 # eigen
 find_package(Eigen REQUIRED)
 include_directories(SYSTEM ${EIGEN_INCLUDE_DIRS})
@@ -21,7 +27,8 @@ INCLUDE_DIRECTORIES(${BOOST_INCLUDE_DIR})
 LINK_DIRECTORIES(${BOOST_LIBRARY_DIRS})
 
 # pcl
-set(PCL_DIR /home/jyi/Devel/pcl/share/pcl-1.8)
+#set(PCL_DIR /home/jyi/Devel/pcl/share/pcl-1.8)
+set(PCL_DIR /home/jyi/Devel/pcl/180/share/pcl-1.8)
 find_package(PCL REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
@@ -86,7 +93,8 @@ set(incs_fw_global   "include/feature_wrapper/global/vfh_estimator.h"
            "include/utils/persistence_utils.h"
            "include/utils/vtk_model_sampling.h"
            "include/utils/uniform_sampling.h"
-           "include/utils/uniform_sampling.hpp")
+           "include/utils/uniform_sampling.hpp"
+           "include/utils/readparameters.h")
 
   set(srcs src/global_nn_classifier.cpp
            src/global_nn_recognizer_crh.cpp
@@ -94,7 +102,8 @@ set(incs_fw_global   "include/feature_wrapper/global/vfh_estimator.h"
            src/local_recognizer.cpp
            src/openni_frame_source.cpp
            src/render_views_tesselated_sphere.cpp
-           src/uniform_sampling.cpp)
+           src/uniform_sampling.cpp
+           src/readparameters.cpp)
 
   set(impl_incs_pipeline "include/pipeline/impl/global_nn_classifier.hpp"
                 "include/pipeline/impl/global_nn_recognizer_crh.hpp"
@@ -114,7 +123,7 @@ add_library("${LIB_NAME}" ${srcs} ${impl_incs_pipeline} ${incs_utils} ${incs_fw}
 add_executable(pcl_local_or_mian apps/local_recognition_mian_dataset.cpp)
 target_link_libraries(pcl_local_or_mian
 ${LIB_NAME}
-${OPENNI_LIBRARIES} ${LIBUSB_1_LIBRARIES} ${PCL_LIBRARIES} ${VTK_LIBRARIES} ${BOOST_LIBRARIES})
+${OPENNI_LIBRARIES} ${LIBUSB_1_LIBRARIES} ${PCL_LIBRARIES} ${VTK_LIBRARIES} ${BOOST_LIBRARIES} ${Libconfig_LIBS})
 
 add_executable(ppf_rec apps/ppf_rec.cpp)
 target_link_libraries(ppf_rec
@@ -129,9 +138,15 @@ ${PCL_LIBRARIES} ${VTK_LIBRARIES} ${BOOST_LIBRARIES})
 add_executable(alignment apps/alignment_prerejective.cpp)
 target_link_libraries(alignment
 ${LIB_NAME}
-${PCL_LIBRARIES} ${VTK_LIBRARIES} ${BOOST_LIBRARIES})
+${PCL_LIBRARIES} ${VTK_LIBRARIES} ${BOOST_LIBRARIES} ${Libconfig_LIBS})
 
 add_executable(resize apps/resize.cpp)
 target_link_libraries(resize
 ${LIB_NAME}
-${PCL_LIBRARIES} ${VTK_LIBRARIES} ${BOOST_LIBRARIES})
+${PCL_LIBRARIES} ${VTK_LIBRARIES} ${BOOST_LIBRARIES} ${Libconfig_LIBS})
+
+
+add_executable(initial_alignment apps/initial_alignment.cpp)
+target_link_libraries(initial_alignment
+${LIB_NAME}
+${PCL_LIBRARIES} ${VTK_LIBRARIES} ${BOOST_LIBRARIES} ${Libconfig_LIBS})

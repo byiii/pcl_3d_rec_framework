@@ -13,7 +13,9 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/registration/icp.h>
-#include <pcl/registration/sample_consensus_prerejective.h>
+
+#include <pcl/registration/ia_ransac.h>
+
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
@@ -26,7 +28,6 @@
 // Types
 typedef pcl::PointNormal PointNT;
 typedef pcl::PointCloud<PointNT> PointCloudT;
-
 
 typedef pcl::FPFHSignature33 FeatureT;
 //typedef pcl::SHOT352 FeatureT;
@@ -79,8 +80,8 @@ main (int argc, char **argv)
 
     // generate the rotation matrix:
     // define the rotation angle and rotation axis
-    float rotation_angle = (float)0.0/180.0*M_PI;
-    Eigen::Vector3f rotation_axis(0.0f, 0.0f, 1.0f);
+    float rotation_angle = (float)20.0/180.0*M_PI;
+    Eigen::Vector3f rotation_axis(0.2f, 1.0f, 1.0f);
     Eigen::AngleAxisf rotation_mg (rotation_angle, rotation_axis);
 
     // generate the whole tranform:
@@ -135,42 +136,35 @@ main (int argc, char **argv)
 
   // Perform alignment
   pcl::console::print_highlight ("Starting alignment...\n");
-  pcl::SampleConsensusPrerejective<PointNT,PointNT,FeatureT> align;
 
-  int number_of_samples = 4;
-  int k_nearest_features = 3;
-  float inlier_threshold = 0.5;
-  param_reader.get<int>("sample_for_generating_a_pose", number_of_samples);
-  param_reader.get<int>("k_nearest_features", k_nearest_features);
-  param_reader.get<float>("inlier_threshold",inlier_threshold);
+  // Initialize Sample Consensus Initial Alignment (SAC-IA)
+  pcl::SampleConsensusInitialAlignment<PointNT, PointNT, FeatureT> reg;
+  reg.setMinSampleDistance (0.01f);
+  reg.setMaxCorrespondenceDistance (0.01);
+  reg.setMaximumIterations (1000);
 
-  align.setInputSource (object);
-  align.setSourceFeatures (object_features);
-  align.setInputTarget (scene);
-  align.setTargetFeatures (scene_features);
-  align.setMaximumIterations (50000); // Number of RANSAC iterations
-  align.setNumberOfSamples (number_of_samples); // Number of points to sample for generating/prerejecting a pose
-  align.setCorrespondenceRandomness (k_nearest_features); // Number of nearest features to use
-  align.setSimilarityThreshold (0.9f); // Polygonal edge length similarity threshold
-  align.setMaxCorrespondenceDistance (2.5f * leaf); // Inlier threshold
-  align.setInlierFraction (inlier_threshold); // Required inlier fraction for accepting a pose hypothesis
+  reg.setInputSource (object);
+  reg.setInputTarget (scene);
+  reg.setSourceFeatures (object_features);
+  reg.setTargetFeatures (scene_features);
+
   {
     pcl::ScopeTime t("Alignment");
-    align.align (*object_aligned);
+    reg.align (*object_aligned);
   }
 
-  if (align.hasConverged ())
+  if (reg.hasConverged ())
   {
     // Print results
     printf ("\n");
-    Eigen::Matrix4f transformation = align.getFinalTransformation ();
+    Eigen::Matrix4f transformation = reg.getFinalTransformation ();
     pcl::console::print_info ("    | %6.3f %6.3f %6.3f | \n", transformation (0,0), transformation (0,1), transformation (0,2));
     pcl::console::print_info ("R = | %6.3f %6.3f %6.3f | \n", transformation (1,0), transformation (1,1), transformation (1,2));
     pcl::console::print_info ("    | %6.3f %6.3f %6.3f | \n", transformation (2,0), transformation (2,1), transformation (2,2));
     pcl::console::print_info ("\n");
     pcl::console::print_info ("t = < %0.3f, %0.3f, %0.3f >\n", transformation (0,3), transformation (1,3), transformation (2,3));
     pcl::console::print_info ("\n");
-    pcl::console::print_info ("Inliers: %i/%i\n", align.getInliers ().size (), object->size ());
+//    pcl::console::print_info ("Inliers: %i/%i\n", reg.getInliers ().size (), object->size ());
 
     // Show alignment
     pcl::visualization::PCLVisualizer visu("Alignment");

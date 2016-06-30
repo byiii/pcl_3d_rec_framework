@@ -1,0 +1,3 @@
+[Project]
+Manager=KDevCMakeManager
+Name=pcl_3d_rec_framework
