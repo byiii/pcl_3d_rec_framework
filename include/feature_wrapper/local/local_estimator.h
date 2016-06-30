@@ -10,12 +10,13 @@
 
 #include "feature_wrapper/normal_estimator.h"
 
-#include <pcl/keypoints/uniform_sampling.h>
-//#include <pcl/filters/uniform_sampling.h>
+//#include "utils/uniform_sampling.h"
+
 #include <pcl/surface/mls.h>
 #include <pcl/keypoints/harris_3d.h>
 #include <pcl/keypoints/sift_keypoint.h>
 #include <pcl/keypoints/susan.h>
+#include <pcl/keypoints/uniform_sampling.h>
 
 namespace pcl
 {
